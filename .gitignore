@@ -1,8 +1,4 @@
-/.vscode
-/classifier/scrat
-/classifier/__pycache__
-/classifier/data
-
+# Heavy folders
 .vscode
 classifier/scrat
 classifier/__pycache__
@@ -10,5 +6,5 @@ classifier/data
 
 # Heavy files
 full_data.h5ad
-scrna_seq.h5ad 
-PhD_test_oj.rds
+data/PhD_test_obj.rds
+data/scrna_seq.h5ad 
