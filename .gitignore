@@ -1,0 +1,14 @@
+/.vscode
+/classifier/scrat
+/classifier/__pycache__
+/classifier/data
+
+.vscode
+classifier/scrat
+classifier/__pycache__
+classifier/data
+
+# Heavy files
+full_data.h5ad
+scrna_seq.h5ad 
+PhD_test_oj.rds
