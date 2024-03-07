@@ -175,17 +175,17 @@ def Custom_data(args):
     '''
     !!! Need to change line 178 before running the code !!!
     '''
-    id_dict = {}  # {'cancer': 1, 'health': 0}
+    args.dataset = "../data/full_data.h5ad"
+    id_dict = {'Disease': 1, 'Control':0}  # {'cancer': 1, 'health': 0}
     data = scanpy.read_h5ad(args.dataset)
     if args.pca == True:
         origin = data.obsm['X_pca']
     else:
-        origin = data.layers['raw']
+        # origin = data.layers['raw']
+        origin = data.X
     
-    patient_id = data.obs['patient_id']
-
-    labels = data.obs['Outcome']
-
+    patient_id = data.obs['replicate']
+    labels = data.obs['label']
     cell_type = data.obs['cell_type']
 
     cell_type_large = None
@@ -219,5 +219,5 @@ def Custom_data(args):
                 l_dict[labels_[idx[0]]] = l_dict.get(labels_[idx[0]], 0) + 1
 
     # print(l_dict)
-
+    print("Data was correctly extracted")
     return p_idx, labels_, cell_type, patient_id, origin, cell_type_large

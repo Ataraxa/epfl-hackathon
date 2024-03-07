@@ -281,8 +281,12 @@ if args.task != 'custom':
     p_idx, labels_, cell_type, patient_id, data, cell_type_large = Covid_data(args)
 else:
     p_idx, labels_, cell_type, patient_id, data, cell_type_large = Custom_data(args)
+print("Data finished loading!")
+print("")
 rkf = RepeatedKFold(n_splits=abs(args.n_splits), n_repeats=args.repeat * 100, random_state=args.seed)
+print(f'RKF = {rkf}')
 num = np.arange(len(p_idx))
+print(f'num = {num}')
 accuracy, aucs, cms, recalls, precisions = [], [], [], [], []
 iter_count = 0
 
@@ -295,9 +299,14 @@ for train_index, test_index in rkf.split(num):
     label_stat = []
     for idx in train_index:
         label_stat.append(labels_[p_idx[idx][0]])
+    # print(label_stat)
     unique, cts = np.unique(label_stat, return_counts=True)
-    if len(unique) < 2 or (1 in cts):
-        continue
+    # print(unique)
+    # print(cts)
+    # print("__________________________________")
+    # if len(unique) < 2 or (1 in cts):
+    #     # print("Skipped!")
+    #     continue
 #     print(dict(zip(unique, cts)))
 
     kk = 0
@@ -326,6 +335,9 @@ for train_index, test_index in rkf.split(num):
     id_train = []
     id_test = []
     id_valid = []
+    print("")
+    print("Going into mixups")
+    print("")
     data_augmented, train_p_idx, labels_augmented, cell_type_augmented = mixups(args, data,
                                                                                 [p_idx[idx] for idx in train_index],
                                                                                 labels_,
