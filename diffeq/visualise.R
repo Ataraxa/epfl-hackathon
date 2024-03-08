@@ -3,8 +3,8 @@
 # df = loaded_data$metadata
 library(SingleCellExperiment)
 
-loaded <- readRDS("sce_obj.rds")
-print(loaded)
+loaded <- readRDS("classifier/data/epfl/PhD_test_obj.rds")
+str(loaded)
 # df_sorted <- df[order(df$cell_type), ]
 # indices_ventral <- which(df_sorted$cell_type == "Ventral")
 # print(indices_ventral)
