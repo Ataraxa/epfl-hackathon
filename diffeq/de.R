@@ -29,7 +29,7 @@ cat("Dimensionality Reduction: done! \n")
 
 ## Run differential expression analysis
 DE <- run_de(seurat,
-    de_family=pseudobulk, de_method=DESeq2, de_type=LRT
+    de_family='pseudobulk', de_method='DESeq2', de_type='LRT'
     )
 saveRDS(DE, "DE_results.rds")
 cat("Differential Expression Analysis: done! \n")

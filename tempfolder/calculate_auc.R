@@ -150,6 +150,8 @@ calculate_auc = function(input,
                          # logistic regression parameters
                          lr_params = list(mixture = 1, penalty = 'auto')
 ) {
+
+  cat("Using custom version of Augur!!")
   # check arguments
   classifier = match.arg(classifier)
   augur_mode = match.arg(augur_mode)
@@ -180,7 +182,6 @@ calculate_auc = function(input,
       droplevels()
     cell_types = meta[[cell_type_col]]
     labels = meta[[label_col]]
-    replicates = meta[["replicate"]]
     expr = Seurat::GetAssayData(input)
 
     # print default assay
@@ -198,7 +199,6 @@ calculate_auc = function(input,
       as.data.frame()
     cell_types = meta[[cell_type_col]]
     labels = meta[[label_col]]
-    replicates = meta[["replicate"]]
     expr = monocle3::exprs(input)
   } else if ("SingleCellExperiment" %in% class(input)){
     # confirm SingleCellExperiment is installed
@@ -213,7 +213,6 @@ calculate_auc = function(input,
       as.data.frame()
     cell_types = meta[[cell_type_col]]
     labels = meta[[label_col]]
-    replicates = meta[["replicate"]]
     expr = SummarizedExperiment::assay(input)
   } else {
     # data frame or matrix plus metadata data frame
@@ -234,7 +233,6 @@ calculate_auc = function(input,
     meta %<>% droplevels()
     cell_types = meta[[cell_type_col]]
     labels = meta[[label_col]]
-    replicates = meta[["replicate"]]
   }
 
   # label factor doesn't matter anyway
@@ -347,8 +345,6 @@ calculate_auc = function(input,
     mc.cores = n_threads, function(cell_type) {
       # skip this cell type if there aren't enough cells
       y = labels[cell_types == cell_type]
-      y_replicate = replicates[cell_types == cell_type]
-      # print(y_replicate)
       if (mode == 'classification') {
         if (min(table(y)) < min_cells) {
           warning("skipping cell type ", cell_type,
@@ -403,22 +399,8 @@ calculate_auc = function(input,
       }
 
       # predict on the left-out data
-      retrieve_class_preds = function(split, recipe, model, useless1=1, useless2=2) {
-        saveRDS(recipe, "recipe.rds")
-        saveRDS(split, "split.rds")
+      retrieve_class_preds = function(split, recipe, model) {
         test = bake(recipe, assessment(split))
-
-        # any_missing <- sum(is.na(test))
-        # print(any_missing)
-        # # test <- test[, -which(names(test) == "replicate")]
-        # test <- tryCatch({
-        #   replace(test, is.na(test), factor("Disease_4"))
-        # }, error = function(e) {
-        #   replace(test, is.na(test), factor("Control_2"))
-        # })
-        # any_missing <- sum(is.na(test))
-        # print(any_missing)
-
         tbl = tibble(
           true = test$label,
           pred = predict(model, test),
@@ -446,7 +428,6 @@ calculate_auc = function(input,
       } else {
         multi_metric = metric_set(accuracy, precision, recall, sens,
                                   spec, npv, ppv, roc_auc)
-        # print(multimetric)
       }
 
       prob_select = 3
@@ -459,15 +440,13 @@ calculate_auc = function(input,
                         truth = true,
                         estimate = pred,
                         prob_select,
-                        estimator = estimator,
-                        na_rm = TRUE)
+                        estimator = estimator)
       } else {
         metric_fun = function(x)
           multi_metric(x,
                         truth = true,
                         estimate = pred,
-                        prob_select,
-                        na_rm = TRUE)
+                        prob_select)
       }
 
       importance_name = 'importance'
@@ -516,7 +495,6 @@ calculate_auc = function(input,
             repair_names() %>%
             # add labels
             mutate(label = y)
-            # mutate(replicate = y_replicate)
         } else {
           if (mode == 'regression') {
             subsample_idxs = data.frame(label = y,
@@ -524,17 +502,13 @@ calculate_auc = function(input,
               do(sample_n(., subsample_size)) %>%
               pull(position)
           } else {
-            # print("I am going here!")
-            # subsample_idxs <- data.frame(label = y,
-            #                             position = seq_along(y)) %>%
-            #   group_by(label) %>%
-            #   do(sample_n(., subsample_size)) %>%
-            #   pull(position)
-            # str(subsample_idxs)
-            subsample_idxs <- subsample_by_replicate(y_replicate)
+            subsample_idxs = data.frame(label = y,
+                                        position = seq_along(y)) %>%
+              group_by(label) %>%
+              do(sample_n(., subsample_size)) %>%
+              pull(position)
           }
           y0 = y[subsample_idxs]
-          y0_rep = y_replicate[subsample_idxs]
           # randomly select features
           if (nrow(X) >= min_features_for_selection &
               feature_perc < 1) {
@@ -552,8 +526,7 @@ calculate_auc = function(input,
             # fix any non-unique columns
             repair_names() %>%
             # convert labels back to a factor
-            mutate(label = y0) %>%
-            mutate(replicate = y0_rep)
+            mutate(label = y0)
         }
 
         # set up model
@@ -588,10 +561,7 @@ calculate_auc = function(input,
 
         # fit models in cross-validation
         if (mode == "classification") {
-          # print("here!")
-          # cv = vfold_cv(X0, v = folds, strata = 'label')
-          cv = my_vfold_cv(X0, v = folds)
-          # print(cv)
+          cv = vfold_cv(X0, v = folds, strata = 'label')
         } else {
           cv = vfold_cv(X0, v = folds)
         }
@@ -621,10 +591,9 @@ calculate_auc = function(input,
             pred = list(
               splits,
               recipes,
-              fits, 1, 2
+              fits
             )
           )
-        # print("Passed!")
         if (mode == 'regression') {
           predictions = predictions %>%
             mutate(pred = pmap(pred, retrieve_reg_preds))
@@ -639,8 +608,6 @@ calculate_auc = function(input,
               map(metric_fun)
           ) %>%
           extract2('metrics')
-        eval <- replace(eval, is.na(eval), 0)
-        # print(eval)
 
         # clean up the results
         result = eval %>%
@@ -715,7 +682,6 @@ calculate_auc = function(input,
     AUCs = res %>%
       map("results") %>%
       bind_rows() %>%
-      filter(!is.na(estimate) & !is.nan(estimate)) %>%
       filter(metric == "roc_auc") %>%
       group_by(cell_type, subsample_idx) %>%
       summarise(estimate = mean(estimate)) %>%
