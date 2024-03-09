@@ -8,3 +8,4 @@ classifier/data
 full_data.h5ad
 data/PhD_test_obj.rds
 data/scrna_seq.h5ad 
+results
