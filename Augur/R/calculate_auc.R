@@ -713,18 +713,18 @@ calculate_auc = function(input,
       summarise(auc = mean(estimate)) %>%
       ungroup() %>%
       arrange(desc(auc))
-    accs = res %>%
-      map("results") %>%
-      bind_rows() %>%
-      filter(!is.na(estimate) & !is.nan(estimate)) %>%
-      filter(metric == "accuracy") %>%
-      group_by(cell_type, subsample_idx) %>%
-      summarise(estimate = mean(estimate)) %>%
-      ungroup() %>%
-      group_by(cell_type) %>%
-      summarise(accuracies = mean(estimate)) %>%
-      ungroup() %>%
-      arrange(desc(auc))
+    # accs = res %>%
+    #   map("results") %>%
+    #   bind_rows() %>%
+    #   filter(!is.na(estimate) & !is.nan(estimate)) %>%
+    #   filter(metric == "accuracy") %>%
+    #   group_by(cell_type, subsample_idx) %>%
+    #   summarise(estimate = mean(estimate)) %>%
+    #   ungroup() %>%
+    #   group_by(cell_type) %>%
+    #   summarise(accuracies = mean(estimate)) %>%
+    #   ungroup() %>%
+    #   arrange(desc(auc))
   } else if (mode == "regression") {
     CCCs = res %>%
       map("results") %>%
