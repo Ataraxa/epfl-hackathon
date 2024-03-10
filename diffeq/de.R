@@ -10,8 +10,8 @@ cat("Seurat Object Creation: done \n")
 
 ## Quality Control
 # seurat[["percent.mt"]] <- PercentageFeatureSet(seurat, )
-# VlnPlot(seurat, features = c("nFeature_RNA", "nCount_RNA"), group.by = "replicate")
-seurat <- subset(seurat, subset = nFeature_RNA > 200 & nFeature_RNA < 6000)
+VlnPlot(seurat, features = c("nFeature_RNA", "nCount_RNA"), group.by = "replicate")
+seurat <- subset(seurat, subset = nFeature_RNA < 6000)
 cat("Quality Control: done \n")
 
 ## Standard Processing

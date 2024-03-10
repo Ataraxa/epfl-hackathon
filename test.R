@@ -11,7 +11,7 @@ result <- a %>%
 group_by(cell_type) %>%
 summarise(
 perce = sum(p_val_adj < 0.05, na.rm = TRUE) / n() * 100,
-av = sum(abs(avg_logFC) * -log10(p_val_adj), na.rm = TRUE) / sum(p_val_adj < 0.05, na.rm = TRUE)
+av = mean(abs(avg_logFC) * -log10(p_val_adj), na.rm = TRUE) / sum(p_val_adj < 0.05, na.rm = TRUE)
 ) %>%
-arrange(desc(av))
+arrange(desc(perce))
 print(result)

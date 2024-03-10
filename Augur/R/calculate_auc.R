@@ -513,14 +513,14 @@ calculate_auc = function(input,
               do(sample_n(., subsample_size)) %>%
               pull(position)
           } else {
-            # print("I am going here!")
-            # subsample_idxs <- data.frame(label = y,
-            #                             position = seq_along(y)) %>%
-            #   group_by(label) %>%
-            #   do(sample_n(., subsample_size)) %>%
-            #   pull(position)
-            # str(subsample_idxs)
-            subsample_idxs <- subsample_by_replicate(y_replicate)
+            print("I am going here!")
+            subsample_idxs <- data.frame(label = y,
+                                        position = seq_along(y)) %>%
+              group_by(label) %>%
+              do(sample_n(., subsample_size)) %>%
+              pull(position)
+            str(subsample_idxs)
+            # subsample_idxs <- subsample_by_replicate(y_replicate)
           }
           y0 = y[subsample_idxs]
           y0_rep = y_replicate[subsample_idxs]
@@ -713,6 +713,18 @@ calculate_auc = function(input,
       summarise(auc = mean(estimate)) %>%
       ungroup() %>%
       arrange(desc(auc))
+    accs = res %>%
+      map("results") %>%
+      bind_rows() %>%
+      filter(!is.na(estimate) & !is.nan(estimate)) %>%
+      filter(metric == "accuracy") %>%
+      group_by(cell_type, subsample_idx) %>%
+      summarise(estimate = mean(estimate)) %>%
+      ungroup() %>%
+      group_by(cell_type) %>%
+      summarise(accuracies = mean(estimate)) %>%
+      ungroup() %>%
+      arrange(desc(auc))
   } else if (mode == "regression") {
     CCCs = res %>%
       map("results") %>%
@@ -760,6 +772,7 @@ calculate_auc = function(input,
   )
   if (mode == "classification") {
     obj$AUC = AUCs
+    obj$acc = accs
   } else if (mode == "regression") {
     obj$CCC = CCCs
   }
