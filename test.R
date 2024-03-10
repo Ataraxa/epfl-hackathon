@@ -1,12 +1,17 @@
-# Your two vectors
-vector1 <- c("a1", "a2", "b1")
-vector2 <- c("a1", "b1")
+# result <- a %>%
+#   group_by(cell_type) %>%
+#   summarise(
+#     num_gene_DE = sum(p_val_adj < 0.05, na.rm = TRUE),
+#     avg = sum(abs(avg_logFC) * (p_val_adj < 0.05), na.rm = TRUE) / sum(p_val_adj < 0.05, na.rm = TRUE)
+#   ) %>%
+#   arrange(desc(avg))
 
-# Find the indices of vector2 elements in vector1
-indices <- match(vector2, vector1)
 
-# Replace elements in vector2 with their corresponding indices
-vector2_replaced <- ifelse(!is.na(indices), indices, vector2)
-
-# Print the result
-print(vector2_replaced)
+result <- a %>%
+group_by(cell_type) %>%
+summarise(
+perce = sum(p_val_adj < 0.05, na.rm = TRUE) / n() * 100,
+av = sum(abs(avg_logFC) * -log10(p_val_adj), na.rm = TRUE) / sum(p_val_adj < 0.05, na.rm = TRUE)
+) %>%
+arrange(desc(av))
+print(result)

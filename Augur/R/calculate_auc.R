@@ -408,17 +408,6 @@ calculate_auc = function(input,
         saveRDS(split, "split.rds")
         test = bake(recipe, assessment(split))
 
-        # any_missing <- sum(is.na(test))
-        # print(any_missing)
-        # # test <- test[, -which(names(test) == "replicate")]
-        # test <- tryCatch({
-        #   replace(test, is.na(test), factor("Disease_4"))
-        # }, error = function(e) {
-        #   replace(test, is.na(test), factor("Control_2"))
-        # })
-        # any_missing <- sum(is.na(test))
-        # print(any_missing)
-
         tbl = tibble(
           true = test$label,
           pred = predict(model, test),
@@ -426,7 +415,7 @@ calculate_auc = function(input,
           # convert prob from nested df to columns
           cbind(.$prob) %>%
           select(-prob)
-        
+        conf <- conf_mat(tbl, truth = true, estimate = pred)
         # Restore output syntax to be the exact same as that of parsnip
         colnames(tbl)[levels(test$label) == colnames(tbl)] %<>% paste0(".pred_", .)
         return(tbl)
